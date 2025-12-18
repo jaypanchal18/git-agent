@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: git-agent
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: COMMIT_MODE
+        value: production
+    healthCheckPath: /health
+    plan: free  # Change to 'starter' or 'standard' for paid plans
+

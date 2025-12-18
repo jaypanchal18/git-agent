@@ -26,14 +26,22 @@ app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log("⏰ Cron scheduler will start after first project initialization");
 
-    // Ping our own health endpoint every 10 minutes to keep server alive
-    // setInterval(async () => {
-    //     try {
-    //         await fetch("https://git-agent-943x.onrender.com/health");
-    //     } catch (error) {
-    //         console.log("❌ Self-ping error:", error.message);
-    //     }
-    // }, 10 * 60 * 1000); // 10 minutes
+    // Auto-ping health endpoint to keep server alive (for Render free tier)
+    // Uses RENDER_EXTERNAL_URL if available (Render provides this), otherwise uses custom URL
+    const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.SELF_PING_URL;
+    if (externalUrl && process.env.NODE_ENV === 'production') {
+        console.log(`🔄 Self-ping enabled: ${externalUrl}/health`);
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${externalUrl}/health`);
+                if (response.ok) {
+                    console.log("✅ Self-ping successful");
+                }
+            } catch (error) {
+                console.log("❌ Self-ping error:", error.message);
+            }
+        }, 10 * 60 * 1000); // Every 10 minutes
+    }
 });
 
 // Graceful shutdown
