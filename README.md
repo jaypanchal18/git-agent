@@ -225,6 +225,12 @@ POST /api/git-agent/cron/restart
 POST /api/git-agent/cron/trigger
 ```
 
+**Run daily (for external cron, e.g. Render free tier)**:
+```http
+GET /api/git-agent/run-daily
+```
+Optional: `?key=YOUR_CRON_TRIGGER_SECRET` if `CRON_TRIGGER_SECRET` is set. Use this URL in [cron-job.org](https://cron-job.org) or similar to trigger one commit per day when the app is deployed on a sleeping host.
+
 #### Project Status Endpoints
 
 **Get Project Status**:
@@ -456,7 +462,18 @@ done
 - Verify environment variables
 - Restart the scheduler manually
 
-#### 5. **Memory Issues**
+#### 5. **No daily commits on Render (or other free-tier hosts)**
+**Problem**: App is deployed but no commits happen for days.
+**Cause**: On Render free tier the app **sleeps** after ~15 minutes of no traffic. When the process is asleep, the in-process cron never runs.
+**Solution**: Use an **external** cron to trigger one run per day:
+1. Go to [cron-job.org](https://cron-job.org) (free) and create an account.
+2. Create a new cron job:
+   - **URL**: `https://YOUR-APP.onrender.com/api/git-agent/run-daily`
+   - **Schedule**: Once per day (e.g. 9:00 AM or a time you prefer).
+   - (Optional) If you set `CRON_TRIGGER_SECRET` in Render, add `?key=YOUR_SECRET` to the URL.
+3. Save. The job will wake your app and run one development cycle (one commit) each day.
+
+#### 6. **Memory Issues**
 **Problem**: Project state not persisting
 **Solution**:
 - Check memory service configuration

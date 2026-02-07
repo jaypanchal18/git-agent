@@ -55,6 +55,22 @@ router.post("/cron/trigger", async (req, res) => {
     }
 });
 
+// GET endpoint for external cron (Render free tier sleeps — in-process cron never runs).
+// Call this URL once per day from cron-job.org or similar to run one commit.
+// Optional: ?key=YOUR_CRON_TRIGGER_SECRET (set CRON_TRIGGER_SECRET in Render env).
+router.get("/run-daily", async (req, res) => {
+    try {
+        const secret = process.env.CRON_TRIGGER_SECRET;
+        if (secret && req.query.key !== secret) {
+            return res.status(401).json({ success: false, error: "Invalid or missing key" });
+        }
+        const result = await cronScheduler.triggerManualCycle();
+        res.json({ success: true, data: result, message: "Daily cycle completed" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Project status endpoint
 router.get("/status", async (req, res) => {
     try {
