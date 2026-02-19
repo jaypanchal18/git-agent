@@ -145,6 +145,18 @@ router.post("/force-reset", async (req, res) => {
     }
 });
 
+// Clear memory and allow starting a brand new project (use before POST /run when previous project completed)
+router.post("/clear", async (req, res) => {
+    try {
+        cronScheduler.stop();
+        await memoryService.clearMemory();
+        await memoryService.clearRepositoryInfo();
+        res.json({ success: true, message: "Memory cleared. You can start a new project with POST /run" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Continue development with remaining tasks
 router.post("/continue", async (req, res) => {
     try {

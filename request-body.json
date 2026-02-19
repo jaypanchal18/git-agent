@@ -1,0 +1,6 @@
+{
+  "projectName": "Next.js FastAPI Full-Stack Platform",
+  "description": "A high-level enterprise full-stack application with Next.js 14 frontend (TypeScript, React, App Router) and Python FastAPI backend. Features real-time APIs, authentication, database integration, and modern DevOps.",
+  "complexity": "advanced",
+  "techConstraints": ["Next.js", "TypeScript", "Python", "FastAPI", "React", "PostgreSQL", "REST API", "Docker", "Authentication"]
+}

@@ -1,0 +1,6 @@
+{
+  "projectName": "SQL Agent with Gemini LLM",
+  "description": "An intelligent SQL agent that uses Google Gemini LLM to generate SQL queries from natural language, execute them against a database, and return formatted results. Includes query validation, connection pooling, and support for multiple database backends.",
+  "complexity": "advanced",
+  "techConstraints": ["Python", "Google Gemini", "SQL", "FastAPI", "PostgreSQL", "Natural Language", "Database", "SQLAlchemy"]
+}

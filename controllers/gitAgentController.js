@@ -33,12 +33,12 @@ const gitAgent = async (req, res) => {
             console.log("✅ Memory and repository info cleared for new project");
         }
 
+        // If previous project completed, clear memory so we can start a new project
         if (isCompleted) {
-            return res.status(200).json({
-                success: true,
-                data: { status: "Project completed" },
-                message: 'Project is already completed'
-            });
+            console.log("🔄 Previous project completed. Clearing memory to start new project...");
+            await memoryService.clearMemory();
+            await memoryService.clearRepositoryInfo();
+            console.log("✅ Memory cleared for new project");
         }
 
         let result;
