@@ -259,14 +259,28 @@ export const planProject = async (state) => {
     } catch (error) {
         logError('planProject', error, { state });
 
-        // Fallback response - maintains exact same output format
+        // Fallback: minimal task list from project spec so we never return empty
+        let projectSpec;
+        try {
+            projectSpec = JSON.parse(state.projectSpec);
+        } catch (e) {
+            projectSpec = { title: "Project", techStack: [] };
+        }
+        const title = projectSpec.title || "Project";
+        const tech = (projectSpec.techStack || []).slice(0, 5).join(", ");
+        const fallbackTasks = [
+            { title: "Set up project structure", description: `Create initial structure for ${title}`, filePath: "README.md", estimatedTime: "1 day", priority: "high" },
+            { title: "Implement core application", description: `Build main app with ${tech}`, filePath: "src/app.py", estimatedTime: "1 week", priority: "high" },
+            { title: "Add configuration and deployment", description: "Config and Docker/deploy setup", filePath: "config/", estimatedTime: "3 days", priority: "medium" },
+            { title: "Testing and documentation", description: "Tests and README", filePath: "tests/", estimatedTime: "2 days", priority: "medium" }
+        ];
         return {
             ...state,
             plan: JSON.stringify({
-                tasks: [],
-                timeline: "1 week",
+                tasks: fallbackTasks,
+                timeline: "2 weeks",
                 dependencies: [],
-                milestones: [],
+                milestones: ["Setup", "Core implementation", "Deployment"],
                 riskFactors: []
             })
         };
@@ -353,31 +367,46 @@ export const manageRepository = async (state) => {
             }
         }
 
-        // Generate README content using AI for better quality
-        const readmeContent = await generateAIReadme(projectSpec, repo);
-
-        // Update or create README
-        let readmeSha;
+        // Generate README and update repo (if this fails, we still return the real repo)
         try {
-            const { data } = await github.rest.repos.getContent({
+            const readmeContent = await generateAIReadme(projectSpec, repo);
+            let readmeSha;
+            try {
+                const { data } = await github.rest.repos.getContent({
+                    owner,
+                    repo: repoName,
+                    path: "README.md"
+                });
+                readmeSha = data.sha;
+            } catch (err) {
+                if (err.status !== 404) throw err;
+            }
+            await github.rest.repos.createOrUpdateFileContents({
                 owner,
                 repo: repoName,
-                path: "README.md"
+                path: "README.md",
+                message: readmeSha ? "Update README with project details" : "Initial commit: Add comprehensive README",
+                content: Buffer.from(readmeContent).toString("base64"),
+                branch: "main",
+                sha: readmeSha
             });
-            readmeSha = data.sha;
-        } catch (err) {
-            if (err.status !== 404) throw err;
+        } catch (readmeError) {
+            logError('manageRepository', readmeError, { step: 'README generation/update' });
+            // Fallback README so repo still has content
+            const fallbackReadme = `# ${projectSpec.title}\n\n${projectSpec.description || 'No description.'}\n\n## Tech: ${(projectSpec.techStack || []).join(', ')}`;
+            try {
+                await github.rest.repos.createOrUpdateFileContents({
+                    owner,
+                    repo: repoName,
+                    path: "README.md",
+                    message: "Initial commit: Add README",
+                    content: Buffer.from(fallbackReadme).toString("base64"),
+                    branch: "main"
+                });
+            } catch (e) {
+                console.warn("Fallback README failed:", e.message);
+            }
         }
-
-        await github.rest.repos.createOrUpdateFileContents({
-            owner,
-            repo: repoName,
-            path: "README.md",
-            message: readmeSha ? "Update README with project details" : "Initial commit: Add comprehensive README",
-            content: Buffer.from(readmeContent).toString("base64"),
-            branch: "main",
-            sha: readmeSha
-        });
 
         return { ...state, repo: { name: repo.name, url: repo.html_url } };
     } catch (error) {
