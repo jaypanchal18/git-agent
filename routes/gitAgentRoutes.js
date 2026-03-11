@@ -5,6 +5,20 @@ import memoryService from "../services/memoryService.js";
 
 const router = express.Router();
 
+// Env check (no secrets exposed) - verify Render has required vars
+router.get("/env-check", (req, res) => {
+    res.json({
+        success: true,
+        env: {
+            GITHUB_TOKEN: !!process.env.GITHUB_TOKEN,
+            OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+            GOOGLE_API_KEY: !!process.env.GOOGLE_API_KEY,
+            MODEL_PROVIDER: process.env.MODEL_PROVIDER || "openai",
+            COMMIT_MODE: process.env.COMMIT_MODE || "development"
+        }
+    });
+});
+
 // Main workflow endpoint
 router.post("/run", gitAgent);
 

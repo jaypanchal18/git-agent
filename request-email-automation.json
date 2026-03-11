@@ -1,0 +1,6 @@
+{
+  "projectName": "Built-an-on-prem-email-automation-with-rag-and-ollama",
+  "description": "An on-premises email automation system that generates contextual draft replies using RAG and a local LLM (Ollama). Integrate Outlook 365 with n8n, process historical emails to create a FAISS knowledge base, and auto-generate personalized responses. Include a feedback loop to learn from user edits. Fully private, no cloud dependencies. Role context: AI Automation Engineer / Full Stack Developer / AI Integration Specialist.",
+  "complexity": "advanced",
+  "techConstraints": ["Python", "Flask", "n8n", "Ollama", "FAISS", "MS Graph API", "Microsoft Outlook", "Docker", "RAG", "Automation"]
+}
